@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+main() {
+    dir="$1"
+    shift
+    mkdir -p "$dir"
+
+    manifest="$(files "$@" | sort -u)"
+
+    echo "$manifest" | while IFS= read -r file; do
+        cp --dereference --parents "$file" "$dir"
+        echo "Bundled $file"
+    done
+}
+
+files() {
+    for binary in "$@"; do
+        echo "$binary"
+        ldd "$binary" 2>/dev/null | grep -o '/[^ ]*' || true
+    done
+}
+
+main "$@"
